@@ -6,7 +6,7 @@ all: build
 
 # Only set PROTOC_VER if it has an empty value.
 ifeq (,$(strip $(PROTOC_VER)))
-PROTOC_VER := 25.0
+PROTOC_VER := 24.0
 endif
 
 PROTOC_OS := $(shell uname -s)
