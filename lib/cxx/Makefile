@@ -37,12 +37,11 @@ $(PROTOC):
 ##                              BUILD                                 ##
 ########################################################################
 CSI_PROTO := ../../csi.proto
-CSI_PKG_ROOT := lib/cxx/$(PROTOC_TMP_DIR)
 CSI_PKG_SUB := $(shell cat $(CSI_PROTO) | sed -n -e 's/^package.\([^;]*\).v[0-9]\+;$$/\1/p'|tr '.' '/')
 CSI_BUILD := $(CSI_PKG_SUB)/.build
 CSI_CXX := $(CSI_PKG_SUB)/csi.pb.cc
 CSI_CXX_H := $(CSI_PKG_SUB)/csi.pb.h 
-CSI_CXX_TMP := $(CSI_BUILD)/$(CSI_PKG_ROOT)/csi.pb.h $(CSI_BUILD)/$(CSI_PKG_ROOT)/csi.pb.cc
+CSI_CXX_TMP := $(CSI_BUILD)/csi.pb.h $(CSI_BUILD)/csi.pb.cc
 
 # This recipe generates the C++ language bindings to a temp area.
 $(CSI_CXX_TMP): HERE := $(shell pwd)
@@ -52,12 +51,12 @@ $(CSI_CXX_TMP): INCLUDE := -I$(CSI_ROOT) -I$(HERE)/$(PROTOC_TMP_DIR)/include
 $(CSI_CXX_TMP): $(CSI_PROTO) | $(PROTOC)
 	@mkdir -p "$(CXX_OUT)"
 	(cd "$(HERE)/$(PROTOC_TMP_DIR)" && \
-		$(HERE)/$(PROTOC) $(INCLUDE) --cpp_out="$(CXX_OUT)" "$(CSI_PKG_ROOT)/$(<F)")
+		$(HERE)/$(PROTOC) $(INCLUDE) --cpp_out="$(CXX_OUT)" "$(<F)")
 
 # The temp language bindings are compared to the ones that are
 # versioned. If they are different then it means the language
 # bindings were not updated prior to being committed.
-$(CSI_CXX_H): $(CSI_BUILD)/$(CSI_PKG_ROOT)/csi.pb.h | $(CSI_CXX_TMP)
+$(CSI_CXX_H): $(CSI_BUILD)/csi.pb.h | $(CSI_CXX_TMP)
 ifeq (true,$(GITHUB_ACTIONS))
 	diff "$@" "$?"
 else
@@ -65,7 +64,7 @@ else
 	diff "$@" "$?" > /dev/null 2>&1 || cp -f "$?" "$@"
 endif
 
-$(CSI_CXX): $(CSI_BUILD)/$(CSI_PKG_ROOT)/csi.pb.cc | $(CSI_CXX_TMP)
+$(CSI_CXX): $(CSI_BUILD)/csi.pb.cc | $(CSI_CXX_TMP)
 ifeq (true,$(GITHUB_ACTIONS))
 	diff "$@" "$?"
 else
